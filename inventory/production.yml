@@ -1,0 +1,37 @@
+---
+all:
+  children:
+    firewalls:
+      hosts:
+        firewall:
+          ansible_host: 192.168.10.254
+
+    vlan10_services:
+      hosts:
+        dhcp:
+          ansible_host: 192.168.10.1
+        dns:
+          ansible_host: 192.168.10.2
+        rsyslog:
+          ansible_host: 192.168.10.3
+
+    vlan20_web:
+      hosts:
+        web:
+          ansible_host: 192.168.20.1
+
+    vlan30_clients:
+      hosts:
+        nfs:
+          ansible_host: nfs.st-potache.fr
+        m1:
+          ansible_host: m1.st-potache.fr
+        m2:
+          ansible_host: m2.st-potache.fr
+        m3:
+          ansible_host: m3.st-potache.fr
+
+  vars:
+    ansible_user: ansadmin
+    ansible_become: yes
+...
