@@ -1,0 +1,21 @@
+---
+- name: Install ISC DHCP relay package
+  ansible.builtin.apt:
+    name: isc-dhcp-relay
+    state: present
+    update_cache: true
+
+- name: Configure DHCP relay
+  ansible.builtin.template:
+    src: isc-dhcp-relay.j2
+    dest: /etc/default/isc-dhcp-relay
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart isc-dhcp-relay
+
+- name: Enable and start ISC DHCP relay
+  ansible.builtin.service:
+    name: isc-dhcp-relay
+    enabled: true
+    state: started

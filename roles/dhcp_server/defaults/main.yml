@@ -1,0 +1,61 @@
+---
+dhcp_server_domain_name: st-potache.fr
+dhcp_server_dns_servers:
+  - 192.168.10.2
+dhcp_server_default_lease_time: 600
+dhcp_server_max_lease_time: 7200
+dhcp_server_authoritative: true
+dhcp_server_interfaces:
+  - ens4
+
+dhcp_server_subnets:
+  - name: vlan10_services
+    network: 192.168.10.0
+    netmask: 255.255.255.0
+    routers:
+      - 192.168.10.254
+    range_start: 192.168.10.10
+    range_end: 192.168.10.19
+  - name: vlan20_web
+    network: 192.168.20.0
+    netmask: 255.255.255.0
+    routers:
+      - 192.168.20.254
+    range_start: 192.168.20.10
+    range_end: 192.168.20.14
+  - name: vlan30_clients
+    network: 192.168.30.0
+    netmask: 255.255.255.0
+    routers:
+      - 192.168.30.254
+    range_start: 192.168.30.10
+    range_end: 192.168.30.19
+
+dhcp_server_reservations:
+  - name: dhcp
+    mac: 0c:94:94:b2:00:00
+    ip: 192.168.10.1
+  - name: dns
+    mac: 0c:68:27:89:00:00
+    ip: 192.168.10.2
+  - name: rsyslog
+    mac: 0c:1b:63:2c:00:00
+    ip: 192.168.10.3
+  - name: ansible
+    mac: 0c:9f:28:51:00:00
+    ip: 192.168.10.4
+  - name: web
+    mac: 0c:93:5f:a9:00:00
+    ip: 192.168.20.1
+  - name: m1
+    mac: 0c:a3:95:34:00:00
+    ip: 192.168.30.1
+  - name: m2
+    mac: 0c:e8:55:87:00:00
+    ip: 192.168.30.2
+  - name: m3
+    mac: 0c:b6:e3:00:00:00
+    ip: 192.168.30.3
+  - name: nfs
+    mac: 0c:b6:e9:1f:00:00
+    ip: 192.168.30.4

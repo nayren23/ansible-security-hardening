@@ -31,6 +31,14 @@ all:
         nfs:
           ansible_host: 192.168.30.4
 
+    dhcp_clients:
+      hosts:
+        dns:
+        rsyslog:
+        web:
+      children:
+        vlan30_clients:
+
   vars:
     ansible_user: ansadmin
     ansible_become: true
