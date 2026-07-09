@@ -4,7 +4,6 @@ all:
     firewalls:
       hosts:
         firewall:
-          # Interface reachable from the Ansible control node on VLAN 10.
           ansible_host: 192.168.10.254
 
     vlan10_services:
@@ -22,10 +21,15 @@ all:
           ansible_host: 192.168.20.1
 
     vlan30_clients:
-      hosts: {}
-      # M1, M2, M3 and NFS are specified as DHCP clients in the subject.
-      # Add them here only after DHCP reservations, leases, or DNS records
-      # are known from the live GNS3 environment.
+      hosts:
+        m1:
+          ansible_host: 192.168.30.10
+        m2:
+          ansible_host: 192.168.30.11
+        m3:
+          ansible_host: 192.168.30.12
+        nfs:
+          ansible_host: 192.168.30.13
 
   vars:
     ansible_user: ansadmin
