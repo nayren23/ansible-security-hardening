@@ -22,7 +22,7 @@
     group: root
     mode: '0644'
     validate: >-
-      /bin/sh -c 'cp %s /tmp/dhcpd.conf.ansible-validate
+      /bin/sh -c 'install -m 0644 %s /tmp/dhcpd.conf.ansible-validate
       && /usr/sbin/dhcpd -t -cf /tmp/dhcpd.conf.ansible-validate'
   notify: Restart isc-dhcp-server
 
