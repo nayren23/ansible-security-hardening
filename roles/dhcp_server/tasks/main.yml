@@ -21,7 +21,9 @@
     owner: root
     group: root
     mode: '0644'
-    validate: /usr/sbin/dhcpd -t -cf %s
+    validate: >-
+      /bin/sh -c 'cp %s /tmp/dhcpd.conf.ansible-validate
+      && /usr/sbin/dhcpd -t -cf /tmp/dhcpd.conf.ansible-validate'
   notify: Restart isc-dhcp-server
 
 - name: Enable and start ISC DHCP server
