@@ -33,5 +33,4 @@ all:
 
   vars:
     ansible_user: ansadmin
-    ansible_become: yes
-...
+    ansible_become: true

@@ -2,7 +2,7 @@
 - name: Basic installation and configuration of the Ansible control node
   hosts: all
   become: true
-  become_method: su
+  become_method: ansible.builtin.su
 
   tasks:
     - name: Installation of sudo package
@@ -10,7 +10,7 @@
         name: sudo
         state: present
         update_cache: true
-    
+
     - name: Ensuring the sudo group exists
       ansible.builtin.group:
         name: sudo
@@ -32,7 +32,7 @@
         mode: '0440'
         validate: /usr/sbin/visudo -cf %s
 
-    - name: Copy the public key of the master server (devops) to authorized_keys
+    - name: Copy the public key of the master server to authorized_keys
       ansible.posix.authorized_key:
         user: ansadmin
         state: present
@@ -41,14 +41,13 @@
 
     - name: Disable password authentication for SSH
       ansible.builtin.lineinfile:
-        regexp: "^#?PasswordAuthentication" # Ligne qui commence par PasswordAuthentication, qu'elle soit commentée ou pas, le ^ indique le début de la ligne
+        regexp: "^#?PasswordAuthentication"
         line: "PasswordAuthentication no"
-        path: /etc/ssh/sshd_config # Choix spécifique de sshd_config pour cibler le daemon sshd
+        path: /etc/ssh/sshd_config
       notify: Restart sshd
-  
+
   handlers:
     - name: Restart sshd
       ansible.builtin.systemd:
         name: sshd
         state: restarted
-...
