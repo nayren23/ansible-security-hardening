@@ -2,7 +2,6 @@
 - name: Basic installation and configuration of the Ansible control node
   hosts: all
   become: true
-  become_method: ansible.builtin.su
 
   tasks:
     - name: Installation of sudo package
