@@ -1,0 +1,13 @@
+# Managed by Ansible.
+# This file configures {{ dhcp_client_interface }} through DHCP.
+
+source /etc/network/interfaces.d/*
+
+auto lo
+iface lo inet loopback
+
+auto {{ dhcp_client_interface }}
+iface {{ dhcp_client_interface }} inet dhcp
+{% if dhcp_client_dns_servers | length > 0 %}
+  dns-nameservers {{ dhcp_client_dns_servers | join(' ') }}
+{% endif %}
