@@ -1,0 +1,111 @@
+---
+- name: Install BIND packages
+  ansible.builtin.apt:
+    name:
+      - bind9
+      - bind9-utils
+      - dnsutils
+    state: present
+    update_cache: true
+
+- name: Create BIND key directory
+  ansible.builtin.file:
+    path: /etc/bind/keys
+    state: directory
+    owner: root
+    group: bind
+    mode: '0750'
+
+- name: Check whether the DHCP DDNS key exists
+  ansible.builtin.stat:
+    path: "{{ dns_server_ddns_key_file }}"
+  register: dns_server_ddns_key
+
+- name: Generate DHCP DDNS TSIG key
+  ansible.builtin.shell: >-
+    set -o pipefail &&
+    tsig-keygen -a hmac-sha256 {{ dns_server_ddns_key_name }}
+    > {{ dns_server_ddns_key_file }}
+  args:
+    executable: /bin/bash
+  when: not dns_server_ddns_key.stat.exists
+  changed_when: true
+  no_log: true
+  notify: Restart BIND
+
+- name: Secure DHCP DDNS TSIG key
+  ansible.builtin.file:
+    path: "{{ dns_server_ddns_key_file }}"
+    owner: root
+    group: bind
+    mode: '0640'
+
+- name: Configure BIND options
+  ansible.builtin.template:
+    src: named.conf.options.j2
+    dest: /etc/bind/named.conf.options
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart BIND
+
+- name: Configure BIND local zones
+  ansible.builtin.template:
+    src: named.conf.local.j2
+    dest: /etc/bind/named.conf.local
+    owner: root
+    group: bind
+    mode: '0644'
+  notify: Restart BIND
+
+- name: Create initial forward zone
+  ansible.builtin.template:
+    src: forward-zone.j2
+    dest: "/var/lib/bind/db.{{ dns_server_domain }}"
+    owner: bind
+    group: bind
+    mode: '0644'
+    force: false
+  notify: Restart BIND
+
+- name: Create initial reverse zones
+  ansible.builtin.template:
+    src: reverse-zone.j2
+    dest: "/var/lib/bind/{{ item.file }}"
+    owner: bind
+    group: bind
+    mode: '0644'
+    force: false
+  loop: "{{ dns_server_reverse_zones }}"
+  loop_control:
+    label: "{{ item.name }}"
+  notify: Restart BIND
+
+- name: Validate forward zone
+  ansible.builtin.command:
+    argv:
+      - named-checkzone
+      - "{{ dns_server_domain }}"
+      - "/var/lib/bind/db.{{ dns_server_domain }}"
+  changed_when: false
+
+- name: Validate reverse zones
+  ansible.builtin.command:
+    argv:
+      - named-checkzone
+      - "{{ item.name }}"
+      - "/var/lib/bind/{{ item.file }}"
+  loop: "{{ dns_server_reverse_zones }}"
+  loop_control:
+    label: "{{ item.name }}"
+  changed_when: false
+
+- name: Validate complete BIND configuration
+  ansible.builtin.command: named-checkconf
+  changed_when: false
+
+- name: Enable and start BIND
+  ansible.builtin.service:
+    name: named
+    enabled: true
+    state: started

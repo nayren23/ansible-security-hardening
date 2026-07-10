@@ -1,0 +1,14 @@
+$TTL 3600
+@ IN SOA {{ dns_server_fqdn }}. {{ dns_server_email }}. (
+  1       ; serial
+  3600    ; refresh
+  900     ; retry
+  604800  ; expire
+  3600    ; negative cache TTL
+)
+
+@ IN NS {{ dns_server_fqdn }}.
+
+{% for record in item.records %}
+{{ record.last_octet }} IN PTR {{ record.hostname }}.{{ dns_server_domain }}.
+{% endfor %}

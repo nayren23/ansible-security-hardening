@@ -1,0 +1,6 @@
+---
+- name: Configure authoritative and recursive DNS server
+  hosts: dns_servers
+  become: true
+  roles:
+    - dns_server
