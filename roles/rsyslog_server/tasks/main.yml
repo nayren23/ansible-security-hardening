@@ -11,7 +11,7 @@
   ansible.builtin.file:
     path: "{{ rsyslog_server_remote_log_dir }}"
     state: directory
-    owner: syslog
+    owner: root
     group: adm
     mode: '0750'
 

@@ -6,8 +6,8 @@
     delaycompress
     missingok
     notifempty
-    su syslog adm
-    create 0640 syslog adm
+    su root adm
+    create 0640 root adm
     sharedscripts
     postrotate
         systemctl kill -s HUP rsyslog.service >/dev/null 2>&1 || true
