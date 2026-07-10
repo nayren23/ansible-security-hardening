@@ -1,0 +1,25 @@
+---
+- name: Configure DNS and generate its DDNS key
+  hosts: dns_servers
+  become: true
+  roles:
+    - dns_server
+
+- name: Read the DDNS key from the DNS server
+  hosts: dns_servers
+  become: true
+  tasks:
+    - name: Read DHCP DDNS TSIG key
+      ansible.builtin.slurp:
+        src: "{{ dns_server_ddns_key_file }}"
+      register: dns_ddns_key
+      no_log: true
+
+- name: Configure authenticated DDNS updates on DHCP server
+  hosts: dhcp_servers
+  become: true
+  vars:
+    dhcp_server_ddns_key_content: >-
+      {{ hostvars[groups['dns_servers'][0]].dns_ddns_key.content | b64decode }}
+  roles:
+    - dhcp_server
