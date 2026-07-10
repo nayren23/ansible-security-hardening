@@ -1,0 +1,98 @@
+---
+- name: S'assurer que tous les groupes existent (Requis pour les ACLs réseau)
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - comptabilite
+    - scolarite
+    - direction
+
+- name: Créer les utilisateurs assignés avec leurs règles de dossiers spécifiques
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    group: "{{ item.group }}"
+    password: "{{ users_password_hash }}"
+    create_home: "{{ item.create_home }}"
+    home: "{{ item.home | default(omit) }}"
+    shell: /bin/bash
+    state: present
+  loop: "{{ machine_users | default([]) }}"
+
+- name: M1 - Créer les dossiers de partage
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: "{{ item.group }}"
+    mode: '0770'
+  loop:
+    - { path: '/home/share/comptabilite', group: 'comptabilite' }
+    - { path: '/home/share/scolarite', group: 'root' } # Juste le point de montage
+  when: inventory_hostname == 'm1'
+
+- name: M1 - Accès lecture seule au dossier scolarité
+  ansible.posix.acl:
+    path: /home/share/scolarite
+    entity: comptabilite
+    etype: group
+    permissions: r-x
+    state: present
+  when: inventory_hostname == 'm1'
+
+
+- name: M2 - Créer le dossier de travail commun et le partage
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: root
+    group: scolarite
+    mode: '0770'
+  loop:
+    - { path: '/home/scolarite' }
+    - { path: '/home/share/scolarite' }
+  when: inventory_hostname == 'm2'
+
+
+- name: M3 - Créer les points de montage pour la lecture
+  ansible.builtin.file:
+    path: "/home/share/{{ item }}"
+    state: directory
+    owner: root
+    group: root # Le dossier appartient à root, l'accès se fait par ACL
+    mode: '0770'
+  loop:
+    - reporting
+    - scolarite
+  when: inventory_hostname == 'm3'
+
+- name: M3 - Accès lecture seule sur reporting et scolarité
+  ansible.posix.acl:
+    path: "/home/share/{{ item }}"
+    entity: direction
+    etype: group
+    permissions: r-x
+    state: present
+  loop:
+    - reporting
+    - scolarite
+  when: inventory_hostname == 'm3'
+
+
+- name: Installer auditd et le plugin syslog pour la journalisation
+  ansible.builtin.apt:
+    name: 
+      - auditd
+      - audispd-plugins
+    state: present
+    update_cache: yes
+
+- name: Configurer auditd pour surveiller les modifications dans /home/share/
+  ansible.builtin.copy:
+    content: "-w /home/share/ -p rwxa -k nfs_share_audit\n"
+    dest: /etc/audit/rules.d/nfs_share.rules
+    owner: root
+    group: root
+    mode: '0640'
+  notify: Restart auditd
+...
