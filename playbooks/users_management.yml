@@ -1,8 +1,10 @@
 ---
-- name: Gestion des Utilisateurs et des Permissions (ACL)
-  hosts: vlan30_clients 
+- name: Manage users and ACL permissions
+  hosts: managed_user_hosts
   become: true
-  
+
+  vars_files:
+    - ../inventory/vault/users.yml
+
   roles:
     - system_users_acl
-...
