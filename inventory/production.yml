@@ -51,6 +51,12 @@ all:
         nfs:
           ansible_host: 192.168.30.4
 
+    managed_user_hosts:
+      hosts:
+        m1:
+        m2:
+        m3:
+
     dhcp_clients:
       hosts:
         dns:
