@@ -8,6 +8,15 @@ dhcp_server_authoritative: true
 dhcp_server_interfaces:
   - ens4
 
+dhcp_server_ddns_key_name: dhcp-ddns
+dhcp_server_ddns_key_file: /etc/dhcp/ddns.key
+dhcp_server_ddns_domain: st-potache.fr
+dhcp_server_ddns_server: 192.168.10.2
+dhcp_server_ddns_reverse_zones:
+  - 10.168.192.in-addr.arpa
+  - 20.168.192.in-addr.arpa
+  - 30.168.192.in-addr.arpa
+
 dhcp_server_subnets:
   - name: vlan10_services
     network: 192.168.10.0

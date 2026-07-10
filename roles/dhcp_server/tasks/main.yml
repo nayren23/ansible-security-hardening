@@ -14,6 +14,26 @@
     mode: '0644'
   notify: Restart isc-dhcp-server
 
+- name: Install DHCP DDNS TSIG key received from DNS server
+  ansible.builtin.copy:
+    content: "{{ dhcp_server_ddns_key_content }}"
+    dest: "{{ dhcp_server_ddns_key_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+  when: dhcp_server_ddns_key_content is defined
+  no_log: true
+  notify: Restart isc-dhcp-server
+
+- name: Recheck whether the DHCP DDNS key is installed
+  ansible.builtin.stat:
+    path: "{{ dhcp_server_ddns_key_file }}"
+  register: dhcp_server_ddns_key_after_copy
+
+- name: Set DDNS activation state
+  ansible.builtin.set_fact:
+    dhcp_server_ddns_active: "{{ dhcp_server_ddns_key_after_copy.stat.exists }}"
+
 - name: Configure DHCP scopes and reservations
   ansible.builtin.template:
     src: dhcpd.conf.j2
