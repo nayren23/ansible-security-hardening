@@ -1,0 +1,39 @@
+# Managed by Ansible.
+
+$AllowedSender TCP, 127.0.0.1, {{ rsyslog_server_allowed_networks | join(', ') }}
+$AllowedSender UDP, 127.0.0.1, {{ rsyslog_server_allowed_networks | join(', ') }}
+
+module(load="imudp")
+input(
+  type="imudp"
+  address="{{ rsyslog_server_listen_address }}"
+  port="{{ rsyslog_server_port }}"
+)
+
+module(load="imtcp")
+input(
+  type="imtcp"
+  address="{{ rsyslog_server_listen_address }}"
+  port="{{ rsyslog_server_port }}"
+)
+
+template(
+  name="RemoteLogPath"
+  type="string"
+  string="{{ rsyslog_server_remote_log_dir }}/%HOSTNAME%/%PROGRAMNAME%.log"
+)
+
+if ($fromhost-ip != "127.0.0.1" and $fromhost-ip != "::1") then {
+  action(
+    type="omfile"
+    dynaFile="RemoteLogPath"
+    createDirs="on"
+    dirCreateMode="0750"
+    fileCreateMode="0640"
+    dirOwner="syslog"
+    dirGroup="adm"
+    fileOwner="syslog"
+    fileGroup="adm"
+  )
+  stop
+}

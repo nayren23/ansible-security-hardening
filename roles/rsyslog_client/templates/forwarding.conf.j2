@@ -1,0 +1,15 @@
+# Managed by Ansible.
+# Keep every local log, but forward only informational and more severe events.
+
+if ($syslogseverity <= 6) then {
+  action(
+    type="omfwd"
+    target="{{ rsyslog_client_server }}"
+    port="{{ rsyslog_client_port }}"
+    protocol="{{ rsyslog_client_protocol }}"
+    action.resumeRetryCount="-1"
+    queue.type="linkedList"
+    queue.filename="{{ rsyslog_client_queue_name }}"
+    queue.saveOnShutdown="on"
+  )
+}
