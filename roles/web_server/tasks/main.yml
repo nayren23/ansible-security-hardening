@@ -1,0 +1,5 @@
+- name: Installation d'Apache2 et de PHP'
+  ansible.builtin.include_tasks: install.yml
+
+- name: Déploiement de l'application web
+  ansible.builtin.include_tasks: deploy.yml

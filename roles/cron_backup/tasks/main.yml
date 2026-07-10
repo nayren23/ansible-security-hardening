@@ -1,0 +1,17 @@
+---
+- name: S'assurer que le dossier de destination du backup existe
+  ansible.builtin.file:
+    path: /mnt/nfs_backup
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Créer la tâche Cron pour la sauvegarde toutes les 10 minutes
+  ansible.builtin.cron:
+    name: "Sauvegarde base de donnees Intranet"
+    minute: "*/10"
+    user: root
+    job: "/usr/bin/mysqldump -u root -proot intranet_db > /mnt/nfs_backup/intranet_backup_$(date +\\%Y\\%m\\%d_\\%H\\%M).sql"
+    state: present
+...

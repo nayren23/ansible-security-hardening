@@ -1,0 +1,11 @@
+---
+- name: Installer Apache2 et PHP
+  ansible.builtin.apt:
+    name: 
+      - apache2
+      - php
+      - php-mysqli
+    state: present
+    update_cache: true
+  notify: Restart apache2
+...

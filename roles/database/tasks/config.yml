@@ -1,0 +1,35 @@
+---
+- name: Configurer le mot de passe root de MariaDB (Consigne stricte)
+  community.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: root
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+    state: present
+
+- name: Créer la base de données de l'intranet
+  community.mysql.mysql_db:
+    name: intranet_db
+    state: present
+    login_user: root
+    login_password: root
+
+- name: Copier le fichier SQL temporairement sur le serveur
+  ansible.builtin.copy:
+    src: database.sql
+    dest: /tmp/database.sql
+    mode: '0600'
+
+- name: Importer la base de données
+  community.mysql.mysql_db:
+    name: intranet_db
+    state: import
+    target: /tmp/database.sql
+    login_user: root
+    login_password: root
+
+- name: Nettoyer le fichier SQL temporaire
+  ansible.builtin.file:
+    path: /tmp/database.sql
+    state: absent
+...

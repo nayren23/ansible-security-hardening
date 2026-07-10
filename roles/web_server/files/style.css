@@ -1,0 +1,161 @@
+/* Styles généraux */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* Conteneur principal */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* En-têtes */
+h1, h2 {
+    text-align: center;
+    color: #333;
+}
+
+/* Formulaire */
+form {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+form label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+form input, form textarea {
+    width: 100%;
+    padding: 8px;
+    margin: 8px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+form input[type="submit"] {
+    padding: 5px 10px;
+    font-size: 14px;
+    background-color: #f44336; /* Rouge */
+    color: white;
+    border: 1px solid #f44336;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-shadow: none;
+    outline: none;
+}
+
+form input[type="submit"]:hover {
+    background-color: #d32f2f;
+}
+
+form input[type="submit"]:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+form input[type="submit"]:active {
+    background-color: #b71c1c;
+    border: 1px solid #b71c1c;
+}
+
+/* Tableaux */
+.table {
+    width: 100%;
+    max-width: 800px;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-bottom: 30px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.table th, .table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+    font-size: 14px;
+}
+
+.table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.table tr:hover {
+    background-color: #e9e9e9;
+}
+
+/* Container du formulaire et des listes */
+.table-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+/* Boutons Supprimer : Réduction de la largeur */
+form input[type="submit"][name="supprimer_employe"],
+form input[type="submit"][name="supprimer_projet"] {
+    padding: 3px 8px;
+    font-size: 12px;
+    width: auto; /* Reduit la largeur pour qu'elle soit plus ajustée */
+    margin: 5px 0;
+}
+
+/* Aligner le contenu au centre */
+ul {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+    max-width: 900px;
+}
+
+li {
+    background-color: #fafafa;
+    padding: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+li:hover {
+    background-color: #f0f0f0;
+}
+
+/* Mobile et Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+
+    .table th, .table td {
+        padding: 6px;
+    }
+
+    form input, form textarea {
+        padding: 6px;
+    }
+
+    form {
+        max-width: 100%;
+        padding: 10px;
+    }
+}
