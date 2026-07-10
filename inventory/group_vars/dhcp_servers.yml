@@ -2,8 +2,8 @@
 dhcp_server_domain_name: st-potache.fr
 dhcp_server_dns_servers:
   - 192.168.10.2
-dhcp_server_default_lease_time: 600
-dhcp_server_max_lease_time: 7200
+dhcp_server_default_lease_time: 2592000
+dhcp_server_max_lease_time: 7776000
 dhcp_server_authoritative: true
 dhcp_server_interfaces:
   - ens4
