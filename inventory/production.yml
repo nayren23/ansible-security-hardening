@@ -15,6 +15,14 @@ all:
         rsyslog:
           ansible_host: 192.168.10.3
 
+    dhcp_servers:
+      hosts:
+        dhcp:
+
+    dns_servers:
+      hosts:
+        dns:
+
     vlan20_web:
       hosts:
         web:
