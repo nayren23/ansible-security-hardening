@@ -23,6 +23,18 @@ all:
       hosts:
         dns:
 
+    rsyslog_servers:
+      hosts:
+        rsyslog:
+
+    rsyslog_clients:
+      children:
+        firewalls:
+        dhcp_servers:
+        dns_servers:
+        vlan20_web:
+        vlan30_clients:
+
     vlan20_web:
       hosts:
         web:

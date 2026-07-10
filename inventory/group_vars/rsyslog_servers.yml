@@ -1,0 +1,11 @@
+---
+rsyslog_server_listen_address: 0.0.0.0
+rsyslog_server_port: 514
+rsyslog_server_remote_log_dir: /var/log/remote
+rsyslog_server_logrotate_frequency: daily
+rsyslog_server_logrotate_retention: 14
+rsyslog_server_logrotate_max_size: 50M
+rsyslog_server_allowed_networks:
+  - 192.168.10.0/24
+  - 192.168.20.0/24
+  - 192.168.30.0/24
