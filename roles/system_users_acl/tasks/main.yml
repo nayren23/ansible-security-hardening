@@ -19,16 +19,16 @@
     state: present
   loop: "{{ machine_users | default([]) }}"
 
-- name: M1 - Créer les dossiers de partage
+- name: M1 - Créer les dossiers de partage (SGID 2770 pour héritage)
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
     owner: root
     group: "{{ item.group }}"
-    mode: '0770'
+    mode: "{{ item.mode }}"
   loop:
-    - { path: '/home/share/comptabilite', group: 'comptabilite' }
-    - { path: '/home/share/scolarite', group: 'root' } # Juste le point de montage
+    - { path: '/home/share/comptabilite', group: 'comptabilite', mode: '2770' }
+    - { path: '/home/share/scolarite', group: 'root', mode: '0770' } # Juste le point de montage
   when: inventory_hostname == 'm1'
 
 - name: Installer le paquet 'acl' requis pour la gestion des permissions complexes
@@ -46,26 +46,47 @@
     state: present
   when: inventory_hostname == 'm1'
 
+- name: M1 - Forcer les droits d'écriture par défaut pour les futurs fichiers
+  ansible.posix.acl:
+    path: /home/share/comptabilite
+    entity: comptabilite
+    etype: group
+    permissions: rwx
+    default: yes
+    state: present
+  when: inventory_hostname == 'm1'
 
-- name: M2 - Créer le dossier de travail commun et le partage
+- name: M2 - Créer le dossier de travail commun et le partage (SGID 2770 pour héritage)
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: directory
     owner: root
     group: scolarite
-    mode: '0770'
+    mode: '2770'
   loop:
     - { path: '/home/scolarite' }
     - { path: '/home/share/scolarite' }
   when: inventory_hostname == 'm2'
 
+- name: M2 - Forcer les droits d'écriture par défaut pour les futurs fichiers
+  ansible.posix.acl:
+    path: "{{ item }}"
+    entity: scolarite
+    etype: group
+    permissions: rwx
+    default: yes
+    state: present
+  loop:
+    - /home/scolarite
+    - /home/share/scolarite
+  when: inventory_hostname == 'm2'
 
 - name: M3 - Créer les points de montage pour la lecture
   ansible.builtin.file:
     path: "/home/share/{{ item }}"
     state: directory
     owner: root
-    group: root # Le dossier appartient à root, l'accès se fait par ACL
+    group: root
     mode: '0770'
   loop:
     - reporting
@@ -83,7 +104,6 @@
     - reporting
     - scolarite
   when: inventory_hostname == 'm3'
-
 
 - name: Installer auditd et le plugin syslog pour la journalisation
   ansible.builtin.apt:
