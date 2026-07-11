@@ -65,6 +65,9 @@ table inet filter {
     ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT NFS "
     ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
 
+    # NFS ports fixes (2049 + RPC + Ports statiques fixés)
+    ip saddr 192.168.20.0/24 ip daddr 192.168.30.4 meta l4proto { tcp, udp } th dport { 111, 2049, 4000, 4001, 4002 } accept
+
     # Autoriser spécifiquement le serveur Web à parler au NFS
     ip saddr 192.168.20.0/24 ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
 
