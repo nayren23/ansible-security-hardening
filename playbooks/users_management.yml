@@ -7,4 +7,5 @@
     - ../inventory/vault/users.yml
 
   roles:
+    - nfs_storage
     - system_users_acl

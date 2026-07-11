@@ -1,5 +1,5 @@
 ---
 # Utilisateurs exclusifs à la machine M3 (Direction)
 machine_users:
-  - { name: 'didier', group: 'direction', create_home: true }
+  - { name: 'didier', uid: 2006, group: 'direction', create_home: true }
 ...
