@@ -37,8 +37,8 @@
     target: /tmp/database.sql
     login_user: root
     login_password: root
-    failed_when: false 
-    register: import_result
+  failed_when: false 
+  register: import_result
 
 - name: Nettoyer le fichier SQL temporaire
   ansible.builtin.file:
