@@ -1,16 +1,18 @@
 ---
-- name: S'assurer que tous les groupes existent (Requis pour les ACLs réseau)
+- name: S'assurer que tous les groupes existent avec des GID FIXES (CRUCIAL POUR NFS)
   ansible.builtin.group:
-    name: "{{ item }}"
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
     state: present
   loop:
-    - comptabilite
-    - scolarite
-    - direction
+    - { name: comptabilite, gid: 3001 }
+    - { name: scolarite, gid: 3002 }
+    - { name: direction, gid: 3003 }
 
 - name: Créer les utilisateurs assignés avec leurs règles de dossiers spécifiques
   ansible.builtin.user:
     name: "{{ item.name }}"
+    uid: "{{ item.uid }}"
     group: "{{ item.group }}"
     password: "{{ users_password_hash }}"
     create_home: "{{ item.create_home }}"
