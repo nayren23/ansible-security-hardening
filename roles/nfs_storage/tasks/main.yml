@@ -1,0 +1,51 @@
+---
+- name: SERVEUR - Installer le service NFS et ACL
+  ansible.builtin.apt:
+    name: 
+      - nfs-kernel-server
+      - acl # Indispensable pour que le système de fichiers supporte tes ACLs
+    state: present
+    update_cache: yes
+  when: inventory_hostname == 'nfs'
+
+- name: SERVEUR - Créer le dossier racine du partage
+  ansible.builtin.file:
+    path: /home/share
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: inventory_hostname == 'nfs'
+
+- name: SERVEUR - Configurer les exports NFS (Autoriser le VLAN 30)
+  ansible.builtin.copy:
+    content: "/home/share 192.168.30.0/24(rw,sync,no_subtree_check,no_root_squash)\n"
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart NFS Server
+  when: inventory_hostname == 'nfs'
+
+- name: CLIENTS - Installer l'outil client NFS
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: yes
+  when: inventory_hostname in ['m1', 'm2', 'm3']
+
+- name: CLIENTS - S'assurer que le point de montage local existe
+  ansible.builtin.file:
+    path: /home/share
+    state: directory
+  when: inventory_hostname in ['m1', 'm2', 'm3']
+
+- name: CLIENTS - Monter le partage NFS de manière persistante
+  ansible.posix.mount:
+    path: /home/share
+    src: 192.168.30.4:/home/share
+    fstype: nfs
+    opts: rw,sync,hard,intr
+    state: mounted
+  when: inventory_hostname in ['m1', 'm2', 'm3']
+...
