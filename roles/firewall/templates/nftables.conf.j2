@@ -10,6 +10,7 @@ define ansible_ip = {{ firewall_ansible_controller_ip }}
 define dns_ip = {{ firewall_dns_server_ip }}
 define rsyslog_ip = {{ firewall_rsyslog_server_ip }}
 define web_ip = {{ firewall_web_server_ip }}
+define critical_servers = { {{ firewall_critical_server_ips | join(', ') }} }
 define nfs_ip = {{ firewall_nfs_server_ip }}
 
 table inet filter {
@@ -64,7 +65,12 @@ table inet filter {
     ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT NFS "
     ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
 
-    # ICMP is retained for network diagnostics between internal networks.
+    # Ansible keeps ICMP diagnostics; user networks cannot ping critical servers.
+    ip saddr $ansible_ip ip daddr $internal_nets icmp type echo-request accept
+    ip saddr $internal_nets ip daddr $critical_servers icmp type echo-request limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_REJECT ICMP_SERVER "
+    ip saddr $internal_nets ip daddr $critical_servers icmp type echo-request reject with icmp type admin-prohibited
+
+    # Other internal ICMP remains available for network diagnostics.
     ip saddr $internal_nets ip daddr $internal_nets ip protocol icmp accept
 
     # Internal networks may access the Internet through the WAN interface.
