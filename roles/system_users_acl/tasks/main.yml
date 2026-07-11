@@ -115,6 +115,13 @@
     state: present
     update_cache: yes
 
+- name: Activer le pont entre Auditd et Rsyslog (Pour la centralisation)
+  ansible.builtin.lineinfile:
+    path: /etc/audit/plugins.d/syslog.conf
+    regexp: '^active\s*='
+    line: 'active = yes'
+  notify: Restart auditd
+
 - name: Configurer auditd pour surveiller les modifications dans /home/share/
   ansible.builtin.copy:
     content: "-w /home/share/ -p rwxa -k nfs_share_audit\n"
