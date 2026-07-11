@@ -3,9 +3,18 @@
   ansible.builtin.apt:
     name: 
       - nfs-kernel-server
-      - acl # Indispensable pour que le système de fichiers supporte tes ACLs
+      - acl
     state: present
     update_cache: yes
+  when: inventory_hostname == 'nfs'
+
+- name: SERVEUR - Activer le support des ACLs sur le disque dur principal
+  ansible.posix.mount:
+    path: /
+    src: UUID=ignore
+    fstype: ext4
+    opts: remount,acl
+    state: remounted
   when: inventory_hostname == 'nfs'
 
 - name: SERVEUR - Créer le dossier racine du partage
