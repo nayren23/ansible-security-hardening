@@ -26,9 +26,20 @@
     mode: '0755'
   when: inventory_hostname == 'nfs'
 
-- name: SERVEUR - Configurer les exports NFS (Autoriser le VLAN 30)
+- name: SERVEUR - Créer le dossier pour les backups de la BDD Web
+  ansible.builtin.file:
+    path: /home/backup_db
+    state: directory
+    owner: root
+    group: root
+    mode: '0700' # Seul root y a accès (sécurité)
+  when: inventory_hostname == 'nfs'
+
+- name: SERVEUR - Configurer les exports NFS (VLAN 30 pour clients, VLAN 20 pour Web)
   ansible.builtin.copy:
-    content: "/home/share 192.168.30.0/24(rw,sync,no_subtree_check,no_root_squash)\n"
+    content: |
+          /home/share 192.168.30.0/24(rw,sync,no_subtree_check,no_root_squash)
+          /home/backup_db 192.168.20.0/24(rw,sync,no_subtree_check,no_root_squash)
     dest: /etc/exports
     owner: root
     group: root
