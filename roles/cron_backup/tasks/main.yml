@@ -1,11 +1,25 @@
 ---
-- name: S'assurer que le dossier de destination du backup existe
+- name: Installer l'outil client NFS sur le serveur Web
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: true
+
+- name: S'assurer que le point de montage local du backup existe
   ansible.builtin.file:
     path: /mnt/nfs_backup
     state: directory
     owner: root
     group: root
     mode: '0700'
+
+- name: Monter le partage NFS dédié aux sauvegardes (NFSv3)
+  ansible.posix.mount:
+    path: /mnt/nfs_backup
+    src: 192.168.30.4:/home/backup_db
+    fstype: nfs
+    opts: rw,sync,hard,intr,nfsvers=3
+    state: mounted
 
 - name: Créer la tâche Cron pour la sauvegarde toutes les 10 minutes
   ansible.builtin.cron:
