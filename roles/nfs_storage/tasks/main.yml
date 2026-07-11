@@ -57,7 +57,7 @@
     path: /home/share
     src: 192.168.30.4:/home/share
     fstype: nfs
-    opts: rw,sync,hard,intr
+    opts: rw,sync,hard,intr,nfsvers=3
     state: mounted
   when: inventory_hostname in ['m1', 'm2', 'm3']
 ...
