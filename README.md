@@ -20,6 +20,7 @@ Pour info si un playbook fait appel à un groupe d'host qui possede un fichier d
 ansible-playbook playbooks/bootstrap.yml --extra-vars "ansible_user=debian" -kK --ask-vault-pass
 ansible-playbook playbooks/users_management.yml --ask-vault-pass
 ansible-playbook playbooks/web_intranet.yml --ask-vault-pass
+ansible-playbook playbooks/firewall.yml --ask-vault-pass
 
 --ask-vault-pass = mdp compte root
 ```
