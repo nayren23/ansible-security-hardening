@@ -31,6 +31,12 @@
     - { path: '/home/share/scolarite', group: 'root' } # Juste le point de montage
   when: inventory_hostname == 'm1'
 
+- name: Installer le paquet 'acl' requis pour la gestion des permissions complexes
+  ansible.builtin.apt:
+    name: acl
+    state: present
+    update_cache: yes
+
 - name: M1 - Accès lecture seule au dossier scolarité
   ansible.posix.acl:
     path: /home/share/scolarite
