@@ -6,3 +6,24 @@ dhcp_relay_interfaces:
   - ens5.10
   - ens5.20
 dhcp_relay_options: ""
+
+firewall_wan_interface: ens6
+firewall_internal_interfaces:
+  - ens4
+  - ens5.10
+  - ens5.20
+firewall_internal_networks:
+  - 192.168.10.0/24
+  - 192.168.20.0/24
+  - 192.168.30.0/24
+firewall_ansible_controller_ip: 192.168.10.4
+firewall_dns_server_ip: 192.168.10.2
+firewall_rsyslog_server_ip: 192.168.10.3
+firewall_web_server_ip: 192.168.20.1
+firewall_publish_web_on_wan: false
+firewall_external_web_ports:
+  - 80
+  - 443
+firewall_nfs_server_ip: 192.168.30.4
+firewall_log_rate: 10/second
+firewall_log_burst: 20 packets
