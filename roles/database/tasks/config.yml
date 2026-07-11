@@ -5,8 +5,9 @@
     host: localhost
     password: root
     login_unix_socket: /var/run/mysqld/mysqld.sock
+    check_implicit_admin: true
     state: present
-
+  
 - name: Créer la base de données de l'intranet
   community.mysql.mysql_db:
     name: intranet_db

@@ -65,6 +65,9 @@ table inet filter {
     ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT NFS "
     ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
 
+    # Autoriser spécifiquement le serveur Web à parler au NFS
+    ip saddr 192.168.20.0/24 ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
+
     # Ansible keeps ICMP diagnostics; user networks cannot ping critical servers.
     ip saddr $ansible_ip ip daddr $internal_nets icmp type echo-request accept
     ip saddr $internal_nets ip daddr $critical_servers icmp type echo-request limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_REJECT ICMP_SERVER "
