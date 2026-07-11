@@ -27,6 +27,9 @@
   notify: Restart NFS Server
   when: inventory_hostname == 'nfs'
 
+- name: Forcer le redémarrage immédiat de NFS avant de passer aux clients
+  ansible.builtin.meta: flush_handlers
+
 - name: CLIENTS - Installer l'outil client NFS
   ansible.builtin.apt:
     name: nfs-common
