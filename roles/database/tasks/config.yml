@@ -1,13 +1,22 @@
 ---
-- name: Configurer le mot de passe root de MariaDB (Consigne stricte)
+- name: Créer le fichier .my.cnf pour authentification fiable
+  ansible.builtin.copy:
+    dest: /root/.my.cnf
+    content: |
+      [client]
+      user=root
+      password=root
+    mode: '0600'
+
+- name: S'assurer que le mot de passe root est bien 'root'
   community.mysql.mysql_user:
     name: root
     host: localhost
     password: root
-    login_unix_socket: /var/run/mysqld/mysqld.sock
-    check_implicit_admin: true
     state: present
-  
+    login_user: root
+    login_password: root
+
 - name: Créer la base de données de l'intranet
   community.mysql.mysql_db:
     name: intranet_db
