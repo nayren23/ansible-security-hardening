@@ -7,13 +7,16 @@
     state: present
     update_cache: true
 
-- name: Create local database backup mount point
+- name: Create local database backup mount point when not mounted
   ansible.builtin.file:
     path: /mnt/nfs_backup
     state: directory
     owner: root
     group: root
     mode: "0700"
+  when: >-
+    '/mnt/nfs_backup' not in
+    (ansible_mounts | map(attribute='mount') | list)
 
 - name: Mount restricted NFS backup export
   ansible.posix.mount:
