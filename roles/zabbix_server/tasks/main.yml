@@ -20,6 +20,7 @@
     name:
       - apache2
       - mariadb-server
+      - locales
       - php-mysql
       - python3-pymysql
       - zabbix-apache-conf
@@ -28,6 +29,16 @@
       - zabbix-sql-scripts
     state: present
     update_cache: true
+
+- name: Enable English UTF-8 locale for Zabbix frontend
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    regexp: '^#?\s*en_US.UTF-8 UTF-8$'
+    line: en_US.UTF-8 UTF-8
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Generate locales
 
 - name: Enable and start MariaDB
   ansible.builtin.service:
