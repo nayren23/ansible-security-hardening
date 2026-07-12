@@ -9,6 +9,7 @@ define internal_nets = { {{ firewall_internal_networks | join(', ') }} }
 define ansible_ip = {{ firewall_ansible_controller_ip }}
 define dns_ip = {{ firewall_dns_server_ip }}
 define rsyslog_ip = {{ firewall_rsyslog_server_ip }}
+define zabbix_ip = {{ firewall_zabbix_server_ip }}
 define web_ip = {{ firewall_web_server_ip }}
 define critical_servers = { {{ firewall_critical_server_ips | join(', ') }} }
 define nfs_ip = {{ firewall_nfs_server_ip }}
@@ -24,6 +25,10 @@ table inet filter {
     # Only the Ansible controller may administer the firewall over SSH.
     ip saddr $ansible_ip tcp dport 22 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT SSH "
     ip saddr $ansible_ip tcp dport 22 accept
+
+    # Zabbix Server may perform passive checks on the firewall agent.
+    ip saddr $zabbix_ip tcp dport 10050 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT ZABBIX_AGENT "
+    ip saddr $zabbix_ip tcp dport 10050 accept
 
     # DHCP relay receives client requests and server replies locally.
     iifname $lan_ifaces udp sport 68 udp dport 67 accept
@@ -57,6 +62,12 @@ table inet filter {
     ip saddr $internal_nets ip daddr $rsyslog_ip meta l4proto { tcp, udp } th dport 514 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT RSYSLOG "
     ip saddr $internal_nets ip daddr $rsyslog_ip meta l4proto { tcp, udp } th dport 514 accept
 
+    # Zabbix active and passive agent traffic.
+    ip saddr $internal_nets ip daddr $zabbix_ip tcp dport 10051 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT ZABBIX_SERVER "
+    ip saddr $internal_nets ip daddr $zabbix_ip tcp dport 10051 accept
+    ip saddr $zabbix_ip ip daddr $internal_nets tcp dport 10050 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT ZABBIX_AGENT "
+    ip saddr $zabbix_ip ip daddr $internal_nets tcp dport 10050 accept
+
     # Internal web service.
     ip saddr $internal_nets ip daddr $web_ip tcp dport { 80, 443 } ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT WEB "
     ip saddr $internal_nets ip daddr $web_ip tcp dport { 80, 443 } accept
@@ -83,6 +94,12 @@ table inet filter {
     iifname $wan_if ip daddr $web_ip tcp dport { {{ firewall_external_web_ports | join(', ') }} } accept
 {% endif %}
 
+    # Publish the Zabbix frontend on WAN TCP 8080.
+{% if firewall_publish_zabbix_on_wan %}
+    iifname $wan_if ip daddr $zabbix_ip tcp dport 80 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT EXT_ZABBIX "
+    iifname $wan_if ip daddr $zabbix_ip tcp dport 80 accept
+{% endif %}
+
     # Reject unauthorized internal forwarding and silently drop unsolicited WAN traffic.
     ip saddr $internal_nets limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_REJECT FORWARD "
     ip saddr $internal_nets reject with icmpx type admin-prohibited
@@ -97,11 +114,16 @@ table inet filter {
 }
 
 table ip nat {
-{% if firewall_publish_web_on_wan %}
+{% if firewall_publish_web_on_wan or firewall_publish_zabbix_on_wan %}
   chain prerouting {
     type nat hook prerouting priority dstnat; policy accept;
+{% if firewall_publish_web_on_wan %}
     iifname $wan_if tcp dport 80 dnat to $web_ip:80
     iifname $wan_if tcp dport 443 dnat to $web_ip:443
+{% endif %}
+{% if firewall_publish_zabbix_on_wan %}
+    iifname $wan_if tcp dport {{ firewall_external_zabbix_port }} dnat to $zabbix_ip:80
+{% endif %}
   }
 {% endif %}
 
