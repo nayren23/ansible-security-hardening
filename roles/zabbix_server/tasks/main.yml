@@ -2,7 +2,7 @@
 - name: Download official Zabbix repository package
   vars:
     zabbix_server_repository_filename: >-
-      zabbix-release_latest_{{ zabbix_server_version }}+debian{{ ansible_distribution_major_version }}_all.deb
+      zabbix-release_latest_{{ zabbix_server_version }}%2Bdebian{{ ansible_distribution_major_version }}_all.deb
   ansible.builtin.get_url:
     url: "{{ zabbix_server_repository_base }}/{{ zabbix_server_repository_filename }}"
     dest: /tmp/zabbix-release.deb
