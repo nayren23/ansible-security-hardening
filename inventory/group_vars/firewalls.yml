@@ -19,18 +19,22 @@ firewall_internal_networks:
 firewall_ansible_controller_ip: 192.168.10.4
 firewall_dns_server_ip: 192.168.10.2
 firewall_rsyslog_server_ip: 192.168.10.3
+firewall_zabbix_server_ip: 192.168.10.5
 firewall_web_server_ip: 192.168.20.1
 firewall_critical_server_ips:
   - 192.168.10.1
   - 192.168.10.2
   - 192.168.10.3
   - 192.168.10.4
+  - 192.168.10.5
   - 192.168.20.1
   - 192.168.30.4
 firewall_publish_web_on_wan: true
 firewall_external_web_ports:
   - 80
   - 443
+firewall_publish_zabbix_on_wan: true
+firewall_external_zabbix_port: 8080
 firewall_nfs_server_ip: 192.168.30.4
 firewall_log_rate: 10/second
 firewall_log_burst: 20 packets

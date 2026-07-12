@@ -14,6 +14,19 @@ all:
           ansible_host: 192.168.10.2
         rsyslog:
           ansible_host: 192.168.10.3
+        zabbix:
+          ansible_host: 192.168.10.5
+
+    zabbix_servers:
+      hosts:
+        zabbix:
+
+    zabbix_agents:
+      children:
+        firewalls:
+        vlan10_services:
+        vlan20_web:
+        vlan30_clients:
 
     dhcp_servers:
       hosts:
@@ -32,6 +45,7 @@ all:
         firewalls:
         dhcp_servers:
         dns_servers:
+        zabbix_servers:
         vlan20_web:
         vlan30_clients:
 
