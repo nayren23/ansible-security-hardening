@@ -1,5 +1,5 @@
 -- Création de la base de données
-CREATE DATABASE entreprise;
+CREATE DATABASE IF NOT EXISTS entreprise;
 
 -- Utilisation de la base de données
 USE entreprise;
@@ -34,6 +34,3 @@ INSERT INTO projets (nom_projet, description, responsable) VALUES
 ('Site Web', 'Développement d’un site web pour l’entreprise', 1),
 ('Campagne Marketing', 'Lancement d’une campagne publicitaire', 2),
 ('Analyse Financière', 'Analyse des résultats financiers annuels', 3);
-
-GRANT ALL PRIVILEGES ON entreprise.* TO 'root'@'%' IDENTIFIED BY 'root';
-FLUSH PRIVILEGES;

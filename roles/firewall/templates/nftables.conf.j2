@@ -61,15 +61,9 @@ table inet filter {
     ip saddr $internal_nets ip daddr $web_ip tcp dport { 80, 443 } ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT WEB "
     ip saddr $internal_nets ip daddr $web_ip tcp dport { 80, 443 } accept
 
-    # NFS and rpcbind service.
-    ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT NFS "
-    ip saddr $internal_nets ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
-
-    # NFS ports fixes (2049 + RPC + Ports statiques fixés)
-    ip saddr 192.168.20.0/24 ip daddr 192.168.30.4 meta l4proto { tcp, udp } th dport { 111, 2049, 4000, 4001, 4002 } accept
-
-    # Autoriser spécifiquement le serveur Web à parler au NFS
-    ip saddr 192.168.20.0/24 ip daddr $nfs_ip meta l4proto { tcp, udp } th dport { 111, 2049 } accept
+    # NFSv4 backup traffic is restricted to the Web server.
+    ip saddr $web_ip ip daddr $nfs_ip tcp dport 2049 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT NFS_BACKUP "
+    ip saddr $web_ip ip daddr $nfs_ip tcp dport 2049 accept
 
     # Ansible keeps ICMP diagnostics; user networks cannot ping critical servers.
     ip saddr $ansible_ip ip daddr $internal_nets icmp type echo-request accept

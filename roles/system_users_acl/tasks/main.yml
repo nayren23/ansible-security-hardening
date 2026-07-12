@@ -1,15 +1,33 @@
 ---
-- name: S'assurer que tous les groupes existent avec des GID FIXES (CRUCIAL POUR NFS)
+- name: Install ACL package
+  ansible.builtin.apt:
+    name: acl
+    state: present
+    update_cache: true
+
+- name: Create department groups with stable GIDs
   ansible.builtin.group:
     name: "{{ item.name }}"
     gid: "{{ item.gid }}"
     state: present
   loop:
-    - { name: comptabilite, gid: 3001 }
-    - { name: scolarite, gid: 3002 }
-    - { name: direction, gid: 3003 }
+    - name: comptabilite
+      gid: 3001
+    - name: scolarite
+      gid: 3002
+    - name: direction
+      gid: 3003
 
-- name: Créer les utilisateurs assignés avec leurs règles de dossiers spécifiques
+- name: Create local shared home for school department
+  ansible.builtin.file:
+    path: /home/scolarite
+    state: directory
+    owner: root
+    group: scolarite
+    mode: "2770"
+  when: inventory_hostname == 'm2'
+
+- name: Create assigned users
   ansible.builtin.user:
     name: "{{ item.name }}"
     uid: "{{ item.uid }}"
@@ -20,114 +38,14 @@
     shell: /bin/bash
     state: present
   loop: "{{ machine_users | default([]) }}"
+  no_log: true
 
-- name: M1 - Créer les dossiers de partage (SGID 2770 pour héritage)
-  ansible.builtin.file:
-    path: "{{ item.path }}"
-    state: directory
-    owner: root
-    group: "{{ item.group }}"
-    mode: "{{ item.mode }}"
-  loop:
-    - { path: '/home/share/comptabilite', group: 'comptabilite', mode: '2770' }
-    - { path: '/home/share/scolarite', group: 'root', mode: '0770' } # Juste le point de montage
-  when: inventory_hostname == 'm1'
-
-- name: Installer le paquet 'acl' requis pour la gestion des permissions complexes
-  ansible.builtin.apt:
-    name: acl
-    state: present
-    update_cache: yes
-
-- name: M1 - Accès lecture seule au dossier scolarité
+- name: Set inherited write ACL on local school workspace
   ansible.posix.acl:
-    path: /home/share/scolarite
-    entity: comptabilite
-    etype: group
-    permissions: r-x
-    state: present
-  when: inventory_hostname == 'm1'
-
-- name: M1 - Forcer les droits d'écriture par défaut pour les futurs fichiers
-  ansible.posix.acl:
-    path: /home/share/comptabilite
-    entity: comptabilite
-    etype: group
-    permissions: rwx
-    default: yes
-    state: present
-  when: inventory_hostname == 'm1'
-
-- name: M2 - Créer le dossier de travail commun et le partage (SGID 2770 pour héritage)
-  ansible.builtin.file:
-    path: "{{ item.path }}"
-    state: directory
-    owner: root
-    group: scolarite
-    mode: '2770'
-  loop:
-    - { path: '/home/scolarite' }
-    - { path: '/home/share/scolarite' }
-  when: inventory_hostname == 'm2'
-
-- name: M2 - Forcer les droits d'écriture par défaut pour les futurs fichiers
-  ansible.posix.acl:
-    path: "{{ item }}"
+    path: /home/scolarite
     entity: scolarite
     etype: group
     permissions: rwx
-    default: yes
+    default: true
     state: present
-  loop:
-    - /home/scolarite
-    - /home/share/scolarite
   when: inventory_hostname == 'm2'
-
-- name: M3 - Créer les points de montage pour la lecture
-  ansible.builtin.file:
-    path: "/home/share/{{ item }}"
-    state: directory
-    owner: root
-    group: root
-    mode: '0770'
-  loop:
-    - reporting
-    - scolarite
-  when: inventory_hostname == 'm3'
-
-- name: M3 - Accès lecture seule sur reporting et scolarité
-  ansible.posix.acl:
-    path: "/home/share/{{ item }}"
-    entity: direction
-    etype: group
-    permissions: r-x
-    state: present
-  loop:
-    - reporting
-    - scolarite
-  when: inventory_hostname == 'm3'
-
-- name: Installer auditd et le plugin syslog pour la journalisation
-  ansible.builtin.apt:
-    name: 
-      - auditd
-      - audispd-plugins
-    state: present
-    update_cache: yes
-
-- name: Activer le pont entre Auditd et Rsyslog (Pour la centralisation)
-  ansible.builtin.lineinfile:
-    path: /etc/audit/plugins.d/syslog.conf
-    regexp: '^active\s*='
-    line: 'active = yes'
-  notify: Restart auditd
-
-- name: Configurer auditd pour surveiller les modifications dans /home/share/
-  ansible.builtin.copy:
-    content: "-w /home/share/ -p rwxa -k nfs_share_audit\n"
-    dest: /etc/audit/rules.d/nfs_share.rules
-    owner: root
-    group: root
-    mode: '0640'
-  notify: Restart auditd
-...

@@ -1,46 +1,50 @@
 ---
-- name: Installer l'outil client NFS sur le serveur Web
+- name: Install NFS and cron packages
   ansible.builtin.apt:
-    name: nfs-common
+    name:
+      - nfs-common
+      - cron
     state: present
     update_cache: true
 
-- name: S'assurer que le point de montage local du backup existe
+- name: Create local database backup mount point
   ansible.builtin.file:
     path: /mnt/nfs_backup
     state: directory
     owner: root
     group: root
-    mode: '0700'
+    mode: "0700"
 
-- name: Monter le partage NFS dédié aux sauvegardes
+- name: Mount restricted NFS backup export
   ansible.posix.mount:
     path: /mnt/nfs_backup
     src: 192.168.30.4:/home/backup_db
     fstype: nfs
-    opts: rw,sync,hard,intr,nfsvers=4,proto=tcp
+    opts: rw,sync,hard,nfsvers=4,proto=tcp
     state: mounted
-  register: mount_result
-  until: mount_result is succeeded
+  register: cron_backup_mount
+  retries: 5
+  delay: 3
+  until: cron_backup_mount is succeeded
 
+- name: Install protected database backup script
+  ansible.builtin.template:
+    src: backup-intranet-db.sh.j2
+    dest: /usr/local/sbin/backup-intranet-db
+    owner: root
+    group: root
+    mode: "0700"
 
-- name: Installer le paquet cron
-  ansible.builtin.apt:
-    name: cron
-    state: present
-    update_cache: true
-
-- name: S'assurer que le service cron est démarré
-  ansible.builtin.systemd:
+- name: Enable and start cron
+  ansible.builtin.service:
     name: cron
     state: started
     enabled: true
 
-- name: Créer la tâche Cron pour la sauvegarde toutes les 10 minutes
+- name: Schedule database backup every ten minutes
   ansible.builtin.cron:
-    name: "Sauvegarde base de donnees Intranet"
+    name: Sauvegarde base de donnees Intranet
     minute: "*/10"
     user: root
-    job: "/usr/bin/mysqldump -u root -proot intranet_db > /mnt/nfs_backup/intranet_backup_$(date +\\%Y\\%m\\%d_\\%H\\%M).sql"
+    job: /usr/local/sbin/backup-intranet-db
     state: present
-...

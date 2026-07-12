@@ -1,15 +1,14 @@
 ---
-- name: Installer MariaDB et les dépendances Python pour Ansible
+- name: Install MariaDB and Python dependency
   ansible.builtin.apt:
-    name: 
+    name:
       - mariadb-server
-      - python3-pymysql # Requis par le module Ansible mysql_db
+      - python3-pymysql
     state: present
     update_cache: true
 
-- name: S'assurer que le service MariaDB est démarré et activé
-  ansible.builtin.systemd:
+- name: Enable and start MariaDB
+  ansible.builtin.service:
     name: mariadb
     state: started
     enabled: true
-...
