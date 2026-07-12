@@ -27,7 +27,7 @@ firewall_critical_server_ips:
   - 192.168.10.4
   - 192.168.20.1
   - 192.168.30.4
-firewall_publish_web_on_wan: false
+firewall_publish_web_on_wan: true
 firewall_external_web_ports:
   - 80
   - 443
