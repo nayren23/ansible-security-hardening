@@ -1,5 +1,5 @@
 ---
 zabbix_agent_version: "7.0"
-zabbix_agent_repository_base: "https://repo.zabbix.com/zabbix/7.0/release/debian/pool/main/z/zabbix-release"
+zabbix_agent_repository_base: "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release"
 zabbix_agent_server_ip: 192.168.10.5
 zabbix_agent_metadata: linux
