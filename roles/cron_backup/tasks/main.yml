@@ -18,12 +18,11 @@
     path: /mnt/nfs_backup
     src: 192.168.30.4:/home/backup_db
     fstype: nfs
-    opts: rw,sync,hard,intr,nfsvers=3,proto=tcp
+    opts: rw,sync,hard,intr,nfsvers=4,proto=tcp
     state: mounted
   register: mount_result
   until: mount_result is succeeded
-  retries: 5
-  delay: 10
+
 
 - name: Créer la tâche Cron pour la sauvegarde toutes les 10 minutes
   ansible.builtin.cron:
