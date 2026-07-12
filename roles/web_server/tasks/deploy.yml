@@ -1,17 +1,16 @@
 ---
-- name: Supprimer la page par défaut d'Apache
+- name: Remove default Apache page
   ansible.builtin.file:
     path: /var/www/html/index.html
     state: absent
 
-- name: Déployer les fichiers du site Intranet
+- name: Deploy intranet files
   ansible.builtin.copy:
     src: "{{ item }}"
     dest: "/var/www/html/{{ item }}"
     owner: www-data
     group: www-data
-    mode: '0644'
+    mode: "0644"
   loop:
     - index.php
     - style.css
-...

@@ -57,6 +57,14 @@ all:
         m2:
         m3:
 
+    nfs_servers:
+      hosts:
+        nfs:
+
+    nfs_clients:
+      children:
+        managed_user_hosts:
+
     dhcp_clients:
       hosts:
         dns:

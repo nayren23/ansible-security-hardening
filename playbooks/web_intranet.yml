@@ -1,5 +1,5 @@
 ---
-- name: Déploiement du Serveur Web, Base de données et Sauvegardes
+- name: Deploy Web server, database and backups
   hosts: vlan20_web
   become: true
 
@@ -7,4 +7,3 @@
     - database
     - web_server
     - cron_backup
-...
