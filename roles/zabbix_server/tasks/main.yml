@@ -224,6 +224,7 @@
         password: zabbix
       id: 1
   register: zabbix_server_initial_login
+  failed_when: zabbix_server_initial_login.json.error is defined
   no_log: true
   when: zabbix_server_managed_login.json.error is defined
 
@@ -237,9 +238,12 @@
       method: user.update
       params:
         userid: "1"
+        current_passwd: zabbix
         passwd: "{{ zabbix_server_admin_password }}"
       auth: "{{ zabbix_server_initial_login.json.result }}"
       id: 1
+  register: zabbix_server_password_update
+  failed_when: zabbix_server_password_update.json.error is defined
   no_log: true
   when: zabbix_server_managed_login.json.error is defined
 
@@ -256,6 +260,7 @@
         password: "{{ zabbix_server_admin_password }}"
       id: 1
   register: zabbix_server_api_login
+  failed_when: zabbix_server_api_login.json.error is defined
   no_log: true
 
 - name: Find active Linux agent template
