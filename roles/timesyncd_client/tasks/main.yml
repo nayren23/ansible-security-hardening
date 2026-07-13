@@ -1,0 +1,65 @@
+---
+- name: Remove Chrony from NTP client
+  ansible.builtin.apt:
+    name: chrony
+    state: absent
+    purge: true
+
+- name: Remove obsolete Chrony helper
+  ansible.builtin.file:
+    path: /usr/local/sbin/validate-chrony-config
+    state: absent
+
+- name: Install native systemd time synchronization
+  ansible.builtin.apt:
+    name:
+      - systemd-timesyncd
+      - tzdata
+    state: present
+    update_cache: true
+
+- name: Configure client timezone file
+  ansible.builtin.copy:
+    content: "{{ timesyncd_client_timezone }}\n"
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure client localtime link
+  ansible.builtin.file:
+    src: "/usr/share/zoneinfo/{{ timesyncd_client_timezone }}"
+    dest: /etc/localtime
+    state: link
+    force: true
+
+- name: Create systemd-timesyncd override directory
+  ansible.builtin.file:
+    path: /etc/systemd/timesyncd.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure internal NTP source
+  ansible.builtin.template:
+    src: ansible.conf.j2
+    dest: /etc/systemd/timesyncd.conf.d/ansible.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart systemd-timesyncd
+
+- name: Enable and start systemd-timesyncd
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: started
+    enabled: true
+
+- name: Apply systemd-timesyncd configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Read client synchronization state
+  ansible.builtin.command: timedatectl show-timesync --all
+  register: timesyncd_client_status
+  changed_when: false
