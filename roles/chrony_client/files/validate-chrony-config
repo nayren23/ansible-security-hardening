@@ -1,7 +1,0 @@
-#!/bin/sh
-set -eu
-
-candidate=$(mktemp /tmp/chrony-validation.XXXXXX)
-trap 'rm -f "$candidate"' 0 HUP INT TERM
-install -o root -g root -m 0644 "$1" "$candidate"
-/usr/sbin/chronyd -p -f "$candidate" >/dev/null

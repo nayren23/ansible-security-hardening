@@ -26,10 +26,6 @@ table inet filter {
     ip saddr $ansible_ip tcp dport 22 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT SSH "
     ip saddr $ansible_ip tcp dport 22 accept
 
-    # Internal hosts synchronize time from this firewall.
-    iifname $lan_ifaces ip saddr $internal_nets udp dport 123 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT NTP "
-    iifname $lan_ifaces ip saddr $internal_nets udp dport 123 accept
-
     # Zabbix Server may perform passive checks on the firewall agent.
     ip saddr $zabbix_ip tcp dport 10050 ct state new limit rate {{ firewall_log_rate }} burst {{ firewall_log_burst }} log prefix "NFT_ACCEPT ZABBIX_AGENT "
     ip saddr $zabbix_ip tcp dport 10050 accept
