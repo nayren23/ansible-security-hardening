@@ -4,6 +4,7 @@ extends: default
 ignore: |
   .venv/
   .git/
+  inventory/vault/
 
 rules:
   comments:
