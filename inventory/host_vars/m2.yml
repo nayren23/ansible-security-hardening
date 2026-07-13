@@ -1,0 +1,7 @@
+---
+# Utilisateurs exclusifs à la machine M2 (Scolarité)
+machine_users:
+  - { name: 'marc', uid: 2003, group: 'scolarite', create_home: false, home: '/home/scolarite' }
+  - { name: 'salif', uid: 2004, group: 'scolarite', create_home: false, home: '/home/scolarite' }
+  - { name: 'georges', uid: 2005, group: 'scolarite', create_home: false, home: '/home/scolarite' }
+...

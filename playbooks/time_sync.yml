@@ -1,0 +1,17 @@
+---
+- name: Configure firewall as internal NTP server
+  hosts: firewalls
+  become: true
+  serial: 1
+
+  roles:
+    - ntp_server
+    - firewall
+
+- name: Synchronize infrastructure from firewall
+  hosts: all:!firewalls
+  become: true
+  serial: 3
+
+  roles:
+    - timesyncd_client

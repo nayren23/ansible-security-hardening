@@ -1,0 +1,76 @@
+---
+- name: Initialize MariaDB root password through the Unix socket
+  ansible.mysql.mysql_user:
+    name: root
+    host: localhost
+    password: root
+    state: present
+    login_unix_socket: /run/mysqld/mysqld.sock
+    check_implicit_admin: true
+  no_log: true
+
+- name: Configure protected MariaDB client credentials
+  ansible.builtin.copy:
+    dest: /root/.my.cnf
+    content: |
+      [client]
+      user=root
+      password=root
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+
+- name: Check whether the intranet schema is already imported
+  ansible.builtin.command:
+    argv:
+      - mysql
+      - --defaults-extra-file=/root/.my.cnf
+      - --batch
+      - --skip-column-names
+      - -e
+      - >-
+        SELECT COUNT(*) FROM information_schema.tables
+        WHERE table_schema='entreprise' AND table_name IN ('employes','projets');
+  register: database_existing_tables
+  changed_when: false
+  no_log: true
+
+- name: Copy database seed securely
+  ansible.builtin.copy:
+    src: database.sql
+    dest: /tmp/database.sql
+    owner: root
+    group: root
+    mode: "0600"
+  when: database_existing_tables.stdout | int < 2
+
+- name: Import intranet database
+  ansible.mysql.mysql_db:
+    name: all
+    state: import
+    target: /tmp/database.sql
+    config_file: /root/.my.cnf
+  when: database_existing_tables.stdout | int < 2
+  no_log: true
+
+- name: Remove temporary database seed
+  ansible.builtin.file:
+    path: /tmp/database.sql
+    state: absent
+
+- name: Verify expected intranet tables
+  ansible.builtin.command:
+    argv:
+      - mysql
+      - --defaults-extra-file=/root/.my.cnf
+      - --batch
+      - --skip-column-names
+      - -e
+      - >-
+        SELECT COUNT(*) FROM information_schema.tables
+        WHERE table_schema='entreprise' AND table_name IN ('employes','projets');
+  register: database_verified_tables
+  changed_when: false
+  failed_when: database_verified_tables.stdout | int != 2
+  no_log: true

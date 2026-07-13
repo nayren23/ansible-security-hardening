@@ -1,0 +1,6 @@
+---
+- name: Install MariaDB
+  ansible.builtin.include_tasks: install.yml
+
+- name: Configure MariaDB
+  ansible.builtin.include_tasks: config.yml

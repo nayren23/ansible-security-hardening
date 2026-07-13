@@ -1,0 +1,9 @@
+---
+- name: Deploy Web server, database and backups
+  hosts: vlan20_web
+  become: true
+
+  roles:
+    - database
+    - web_server
+    - cron_backup

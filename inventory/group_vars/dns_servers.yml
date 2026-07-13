@@ -1,0 +1,55 @@
+---
+dns_server_domain: st-potache.fr
+dns_server_fqdn: dns.st-potache.fr
+dns_server_email: admin.st-potache.fr
+dns_server_ip: 192.168.10.2
+dns_server_forwarders:
+  - 1.1.1.1
+  - 8.8.8.8
+dns_server_ddns_key_name: dhcp-ddns
+dns_server_ddns_key_file: /etc/bind/keys/dhcp-ddns.key
+dns_server_listen_addresses:
+  - 127.0.0.1
+  - 192.168.10.2
+dns_server_allowed_networks:
+  - 127.0.0.0/8
+  - 192.168.10.0/24
+  - 192.168.20.0/24
+  - 192.168.30.0/24
+
+dns_server_forward_records:
+  - { name: dhcp, ip: 192.168.10.1 }
+  - { name: dns, ip: 192.168.10.2 }
+  - { name: rsyslog, ip: 192.168.10.3 }
+  - { name: ansible, ip: 192.168.10.4 }
+  - { name: web, ip: 192.168.20.1 }
+  - { name: m1, ip: 192.168.30.1 }
+  - { name: m2, ip: 192.168.30.2 }
+  - { name: m3, ip: 192.168.30.3 }
+  - { name: nfs, ip: 192.168.30.4 }
+  - { name: firewall-vlan10, ip: 192.168.10.254 }
+  - { name: firewall-vlan20, ip: 192.168.20.254 }
+  - { name: firewall-vlan30, ip: 192.168.30.254 }
+
+dns_server_reverse_zones:
+  - name: 10.168.192.in-addr.arpa
+    file: db.192.168.10
+    records:
+      - { last_octet: 1, hostname: dhcp }
+      - { last_octet: 2, hostname: dns }
+      - { last_octet: 3, hostname: rsyslog }
+      - { last_octet: 4, hostname: ansible }
+      - { last_octet: 254, hostname: firewall-vlan10 }
+  - name: 20.168.192.in-addr.arpa
+    file: db.192.168.20
+    records:
+      - { last_octet: 1, hostname: web }
+      - { last_octet: 254, hostname: firewall-vlan20 }
+  - name: 30.168.192.in-addr.arpa
+    file: db.192.168.30
+    records:
+      - { last_octet: 1, hostname: m1 }
+      - { last_octet: 2, hostname: m2 }
+      - { last_octet: 3, hostname: m3 }
+      - { last_octet: 4, hostname: nfs }
+      - { last_octet: 254, hostname: firewall-vlan30 }

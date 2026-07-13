@@ -1,0 +1,43 @@
+---
+- name: Install Rsyslog server packages
+  ansible.builtin.apt:
+    name:
+      - logrotate
+      - rsyslog
+    state: present
+    update_cache: true
+
+- name: Create remote log directory
+  ansible.builtin.file:
+    path: "{{ rsyslog_server_remote_log_dir }}"
+    state: directory
+    owner: root
+    group: adm
+    mode: '0750'
+
+- name: Configure central Rsyslog receiver
+  ansible.builtin.template:
+    src: central-server.conf.j2
+    dest: /etc/rsyslog.d/10-central-server.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Rsyslog
+
+- name: Configure rotation of remote logs
+  ansible.builtin.template:
+    src: remote-logs.logrotate.j2
+    dest: /etc/logrotate.d/rsyslog-remote
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Validate complete Rsyslog configuration
+  ansible.builtin.command: rsyslogd -N1
+  changed_when: false
+
+- name: Enable and start Rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    enabled: true
+    state: started

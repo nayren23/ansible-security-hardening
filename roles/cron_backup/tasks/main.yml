@@ -1,0 +1,53 @@
+---
+- name: Install NFS and cron packages
+  ansible.builtin.apt:
+    name:
+      - nfs-common
+      - cron
+    state: present
+    update_cache: true
+
+- name: Create local database backup mount point when not mounted
+  ansible.builtin.file:
+    path: /mnt/nfs_backup
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: >-
+    '/mnt/nfs_backup' not in
+    (ansible_mounts | map(attribute='mount') | list)
+
+- name: Mount restricted NFS backup export
+  ansible.posix.mount:
+    path: /mnt/nfs_backup
+    src: 192.168.30.4:/home/backup_db
+    fstype: nfs
+    opts: rw,sync,hard,nfsvers=4,proto=tcp
+    state: mounted
+  register: cron_backup_mount
+  retries: 5
+  delay: 3
+  until: cron_backup_mount is succeeded
+
+- name: Install protected database backup script
+  ansible.builtin.template:
+    src: backup-intranet-db.sh.j2
+    dest: /usr/local/sbin/backup-intranet-db
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Enable and start cron
+  ansible.builtin.service:
+    name: cron
+    state: started
+    enabled: true
+
+- name: Schedule database backup every ten minutes
+  ansible.builtin.cron:
+    name: Sauvegarde base de donnees Intranet
+    minute: "*/10"
+    user: root
+    job: /usr/local/sbin/backup-intranet-db
+    state: present

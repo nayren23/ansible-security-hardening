@@ -1,0 +1,110 @@
+---
+- name: Install nftables
+  ansible.builtin.apt:
+    name: nftables
+    state: present
+    update_cache: true
+
+- name: Enable IPv4 forwarding
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    state: present
+    sysctl_set: true
+    reload: true
+
+- name: Create firewall rollback directory
+  ansible.builtin.file:
+    path: /var/lib/ansible-firewall
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Deploy validated nftables ruleset
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: '0644'
+    backup: true
+    validate: nft -c -f %s
+  register: firewall_ruleset
+
+- name: Protect and apply changed firewall rules  # noqa no-handler
+  when: firewall_ruleset.changed
+  block:
+    - name: Read current nftables ruleset for rollback
+      ansible.builtin.command: nft list ruleset
+      register: firewall_previous_ruleset
+      changed_when: false
+
+    - name: Save current nftables ruleset for automatic rollback
+      ansible.builtin.copy:
+        content: |-
+          flush ruleset
+          {{ firewall_previous_ruleset.stdout }}
+        dest: /var/lib/ansible-firewall/rollback.nft
+        owner: root
+        group: root
+        mode: '0600'
+
+    - name: Stop any previous firewall rollback timer
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - stop
+          - ansible-firewall-rollback.timer
+          - ansible-firewall-rollback.service
+      changed_when: false
+      failed_when: false
+
+    - name: Arm automatic firewall rollback in two minutes
+      ansible.builtin.command:
+        argv:
+          - systemd-run
+          - --unit=ansible-firewall-rollback
+          - --on-active=2m
+          - /usr/sbin/nft
+          - -f
+          - /var/lib/ansible-firewall/rollback.nft
+      changed_when: true
+
+    - name: Apply nftables ruleset
+      ansible.builtin.command: nft -f /etc/nftables.conf
+      changed_when: true
+
+    - name: Reset the SSH connection after applying firewall rules
+      ansible.builtin.meta: reset_connection
+
+    - name: Verify that Ansible can reconnect through the new rules
+      ansible.builtin.wait_for_connection:
+        connect_timeout: 5
+        sleep: 2
+        timeout: 60
+
+    - name: Cancel automatic rollback after successful reconnection
+      ansible.builtin.command:
+        argv:
+          - systemctl
+          - stop
+          - ansible-firewall-rollback.timer
+      changed_when: false
+      failed_when: false
+
+- name: Enable and start nftables
+  ansible.builtin.service:
+    name: nftables
+    enabled: true
+    state: started
+
+- name: Verify nftables ruleset syntax
+  ansible.builtin.command: nft -c -f /etc/nftables.conf
+  changed_when: false
+
+- name: Verify IPv4 forwarding is active
+  ansible.builtin.command: sysctl -n net.ipv4.ip_forward
+  register: firewall_ip_forward
+  changed_when: false
+  failed_when: firewall_ip_forward.stdout != '1'

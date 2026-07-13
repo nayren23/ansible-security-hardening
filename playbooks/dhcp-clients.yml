@@ -1,0 +1,7 @@
+---
+- name: Configure selected machines as DHCP clients
+  hosts: dhcp_clients
+  become: true
+  serial: 1
+  roles:
+    - dhcp_client

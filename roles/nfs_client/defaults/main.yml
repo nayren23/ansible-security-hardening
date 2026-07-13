@@ -1,0 +1,5 @@
+---
+nfs_client_server: 192.168.30.4
+nfs_client_remote_path: /home/share
+nfs_client_mount_path: /home/share
+nfs_client_mount_options: rw,sync,hard,nfsvers=4,proto=tcp

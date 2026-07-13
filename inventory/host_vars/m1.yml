@@ -1,0 +1,6 @@
+---
+# Utilisateurs exclusifs à la machine M1 (Comptabilité)
+machine_users:
+  - { name: 'robert', uid: 2001, group: 'comptabilite', create_home: true }
+  - { name: 'tatiana', uid: 2002, group: 'comptabilite', create_home: true }
+...

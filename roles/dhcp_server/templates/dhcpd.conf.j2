@@ -1,0 +1,52 @@
+# Managed by Ansible.
+
+default-lease-time {{ dhcp_server_default_lease_time }};
+max-lease-time {{ dhcp_server_max_lease_time }};
+
+option domain-name "{{ dhcp_server_domain_name }}";
+option domain-name-servers {{ dhcp_server_dns_servers | join(', ') }};
+
+{% if dhcp_server_authoritative %}
+authoritative;
+{% endif %}
+
+{% if dhcp_server_ddns_active | default(false) %}
+include "{{ dhcp_server_ddns_key_file }}";
+ddns-update-style interim;
+ddns-updates on;
+update-static-leases on;
+ignore client-updates;
+ddns-domainname "{{ dhcp_server_ddns_domain }}.";
+ddns-rev-domainname "in-addr.arpa.";
+
+zone {{ dhcp_server_ddns_domain }}. {
+  primary {{ dhcp_server_ddns_server }};
+  key {{ dhcp_server_ddns_key_name }};
+}
+
+{% for zone in dhcp_server_ddns_reverse_zones %}
+zone {{ zone }}. {
+  primary {{ dhcp_server_ddns_server }};
+  key {{ dhcp_server_ddns_key_name }};
+}
+
+{% endfor %}
+{% endif %}
+{% for subnet in dhcp_server_subnets %}
+# {{ subnet.name }}
+subnet {{ subnet.network }} netmask {{ subnet.netmask }} {
+  range {{ subnet.range_start }} {{ subnet.range_end }};
+  option routers {{ subnet.routers | join(', ') }};
+  option subnet-mask {{ subnet.netmask }};
+  option broadcast-address {{ subnet.network | regex_replace('0$', '255') }};
+}
+
+{% endfor %}
+{% for host in dhcp_server_reservations %}
+host {{ host.name }} {
+  hardware ethernet {{ host.mac }};
+  fixed-address {{ host.ip }};
+  option host-name "{{ host.name }}";
+}
+
+{% endfor %}

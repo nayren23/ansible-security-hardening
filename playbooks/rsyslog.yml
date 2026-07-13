@@ -1,0 +1,13 @@
+---
+- name: Configure central Rsyslog server
+  hosts: rsyslog_servers
+  become: true
+  roles:
+    - rsyslog_server
+
+- name: Configure Rsyslog clients
+  hosts: rsyslog_clients
+  become: true
+  serial: 1
+  roles:
+    - rsyslog_client

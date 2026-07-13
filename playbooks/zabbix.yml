@@ -1,0 +1,15 @@
+---
+- name: Deploy Zabbix Server and Web frontend
+  hosts: zabbix_servers
+  become: true
+
+  roles:
+    - zabbix_server
+
+- name: Deploy Zabbix Agent 2 to infrastructure
+  hosts: zabbix_agents
+  become: true
+  serial: 3
+
+  roles:
+    - zabbix_agent
