@@ -1,0 +1,17 @@
+---
+- name: Configure firewall as internal NTP server
+  hosts: firewalls
+  become: true
+  serial: 1
+
+  roles:
+    - chrony_server
+    - firewall
+
+- name: Synchronize infrastructure from internal NTP server
+  hosts: all:!firewalls
+  become: true
+  serial: 3
+
+  roles:
+    - chrony_client

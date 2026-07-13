@@ -1,0 +1,39 @@
+---
+- name: Install Chrony on NTP server
+  ansible.builtin.apt:
+    name: chrony
+    state: present
+    update_cache: true
+
+- name: Configure NTP server timezone
+  community.general.timezone:
+    name: "{{ chrony_server_timezone }}"
+
+- name: Configure Chrony as internal NTP server
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony/chrony.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: /usr/sbin/chronyd -p -f %s
+  notify: Restart Chrony Server
+
+- name: Enable and start Chrony server
+  ansible.builtin.service:
+    name: chrony
+    state: started
+    enabled: true
+
+- name: Apply Chrony server configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Read Chrony server tracking status
+  ansible.builtin.command: chronyc tracking
+  register: chrony_server_tracking
+  changed_when: false
+
+- name: Read Chrony upstream sources
+  ansible.builtin.command: chronyc sources -n
+  register: chrony_server_sources
+  changed_when: false
