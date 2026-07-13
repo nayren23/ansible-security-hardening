@@ -16,7 +16,7 @@
     owner: root
     group: root
     mode: "0644"
-    validate: /usr/sbin/chronyd -p -f %s
+    validate: /usr/sbin/chronyd -p -u root -f %s
   notify: Restart Chrony Client
 
 - name: Enable and start Chrony client
