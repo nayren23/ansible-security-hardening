@@ -1,0 +1,5 @@
+---
+nfs_server_share_network: 192.168.30.0/24
+nfs_server_backup_client: 192.168.20.1
+nfs_server_share_path: /home/share
+nfs_server_backup_path: /home/backup_db

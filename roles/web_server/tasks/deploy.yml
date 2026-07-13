@@ -1,0 +1,16 @@
+---
+- name: Remove default Apache page
+  ansible.builtin.file:
+    path: /var/www/html/index.html
+    state: absent
+
+- name: Deploy intranet files
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/var/www/html/{{ item }}"
+    owner: www-data
+    group: www-data
+    mode: "0644"
+  loop:
+    - index.php
+    - style.css

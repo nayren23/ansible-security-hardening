@@ -1,0 +1,92 @@
+---
+all:
+  children:
+    firewalls:
+      hosts:
+        firewall:
+          ansible_host: 192.168.10.254
+
+    vlan10_services:
+      hosts:
+        dhcp:
+          ansible_host: 192.168.10.1
+        dns:
+          ansible_host: 192.168.10.2
+        rsyslog:
+          ansible_host: 192.168.10.3
+        zabbix:
+          ansible_host: 192.168.10.5
+
+    zabbix_servers:
+      hosts:
+        zabbix:
+
+    zabbix_agents:
+      children:
+        firewalls:
+        vlan10_services:
+        vlan20_web:
+        vlan30_clients:
+
+    dhcp_servers:
+      hosts:
+        dhcp:
+
+    dns_servers:
+      hosts:
+        dns:
+
+    rsyslog_servers:
+      hosts:
+        rsyslog:
+
+    rsyslog_clients:
+      children:
+        firewalls:
+        dhcp_servers:
+        dns_servers:
+        zabbix_servers:
+        vlan20_web:
+        vlan30_clients:
+
+    vlan20_web:
+      hosts:
+        web:
+          ansible_host: 192.168.20.1
+
+    vlan30_clients:
+      hosts:
+        m1:
+          ansible_host: 192.168.30.1
+        m2:
+          ansible_host: 192.168.30.2
+        m3:
+          ansible_host: 192.168.30.3
+        nfs:
+          ansible_host: 192.168.30.4
+
+    managed_user_hosts:
+      hosts:
+        m1:
+        m2:
+        m3:
+
+    nfs_servers:
+      hosts:
+        nfs:
+
+    nfs_clients:
+      children:
+        managed_user_hosts:
+
+    dhcp_clients:
+      hosts:
+        dns:
+        rsyslog:
+        web:
+      children:
+        vlan30_clients:
+
+  vars:
+    ansible_user: ansadmin
+    ansible_become: true

@@ -1,0 +1,5 @@
+# Managed by Ansible.
+
+SERVERS="{{ dhcp_relay_servers | join(' ') }}"
+INTERFACES="{{ dhcp_relay_interfaces | join(' ') }}"
+OPTIONS="{{ dhcp_relay_options }}"

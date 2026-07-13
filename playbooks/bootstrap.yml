@@ -1,0 +1,52 @@
+---
+- name: Basic installation and configuration of the Ansible control node
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Installation of sudo package
+      ansible.builtin.apt:
+        name: sudo
+        state: present
+        update_cache: true
+
+    - name: Ensuring the sudo group exists
+      ansible.builtin.group:
+        name: sudo
+        state: present
+
+    - name: Creation of the ansadmin user with sudo privileges
+      ansible.builtin.user:
+        name: ansadmin
+        create_home: true
+        shell: /bin/bash
+        groups: sudo
+        append: true
+        state: present
+
+    - name: Authorize the ansadmin user to execute sudo commands without a password
+      ansible.builtin.copy:
+        content: "ansadmin ALL=(ALL) NOPASSWD: ALL"
+        dest: /etc/sudoers.d/ansadmin
+        mode: '0440'
+        validate: /usr/sbin/visudo -cf %s
+
+    - name: Copy the public key of the master server to authorized_keys
+      ansible.posix.authorized_key:
+        user: ansadmin
+        state: present
+        key: "{{ lookup('file', '~/.ssh/ansadmin.pub') }}"
+        key_options: 'no-port-forwarding,from="{{ ansible_ip }}"'
+
+    - name: Disable password authentication for SSH
+      ansible.builtin.lineinfile:
+        regexp: "^#?PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        path: /etc/ssh/sshd_config
+      notify: Restart sshd
+
+  handlers:
+    - name: Restart sshd
+      ansible.builtin.systemd:
+        name: sshd
+        state: restarted

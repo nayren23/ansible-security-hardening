@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+backup_dir=/mnt/nfs_backup
+stamp=$(date +%Y%m%d_%H%M%S)
+temporary_file="${backup_dir}/.entreprise_${stamp}.sql"
+final_file="${backup_dir}/entreprise_${stamp}.sql.gz"
+
+if ! mountpoint -q "${backup_dir}"; then
+  logger -p user.err -t DB_BACKUP "NFS backup mount is unavailable"
+  exit 1
+fi
+
+cleanup() {
+  rm -f "${temporary_file}" "${temporary_file}.gz"
+}
+trap cleanup EXIT HUP INT TERM
+
+/usr/bin/mysqldump \
+  --defaults-extra-file=/root/.my.cnf \
+  --single-transaction \
+  --databases entreprise > "${temporary_file}"
+
+gzip "${temporary_file}"
+mv "${temporary_file}.gz" "${final_file}"
+find "${backup_dir}" -maxdepth 1 -type f -name 'entreprise_*.sql.gz' -mtime +14 -delete
+
+trap - EXIT HUP INT TERM
+logger -p user.notice -t DB_BACKUP "Database backup completed: ${final_file}"

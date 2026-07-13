@@ -1,0 +1,16 @@
+# Managed by Ansible.
+driftfile /var/lib/ntpsec/ntp.drift
+leapfile /usr/share/zoneinfo/leap-seconds.list
+
+{% for pool in ntp_server_upstream_pools %}
+pool {{ pool }} iburst
+{% endfor %}
+
+# Restrictive defaults: clients may obtain time but cannot reconfigure the daemon.
+restrict default kod limited nomodify noquery
+restrict 127.0.0.1
+restrict ::1
+restrict source nomodify noquery
+{% for item in ntp_server_allowed_networks %}
+restrict {{ item.network }} mask {{ item.mask }} nomodify
+{% endfor %}

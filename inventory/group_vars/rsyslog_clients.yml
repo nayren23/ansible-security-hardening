@@ -1,0 +1,5 @@
+---
+rsyslog_client_server: 192.168.10.3
+rsyslog_client_port: 514
+rsyslog_client_protocol: tcp
+rsyslog_client_queue_name: central_rsyslog

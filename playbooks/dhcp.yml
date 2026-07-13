@@ -1,0 +1,12 @@
+---
+- name: Configure DHCP server
+  hosts: dhcp_servers
+  become: true
+  roles:
+    - dhcp_server
+
+- name: Configure DHCP relay on firewall
+  hosts: firewalls
+  become: true
+  roles:
+    - dhcp_relay

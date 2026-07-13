@@ -1,0 +1,22 @@
+---
+- name: Install NFS client package
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: true
+
+- name: Create NFS mount point
+  ansible.builtin.file:
+    path: "{{ nfs_client_mount_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Mount shared storage persistently
+  ansible.posix.mount:
+    path: "{{ nfs_client_mount_path }}"
+    src: "{{ nfs_client_server }}:{{ nfs_client_remote_path }}"
+    fstype: nfs
+    opts: "{{ nfs_client_mount_options }}"
+    state: mounted

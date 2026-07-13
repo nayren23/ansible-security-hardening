@@ -1,0 +1,6 @@
+---
+exclude_paths:
+  - .venv/
+  - .git/
+  # This playbook explicitly loads an encrypted vars_file and needs the runtime Vault password.
+  - playbooks/users_management.yml

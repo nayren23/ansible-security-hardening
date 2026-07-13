@@ -1,0 +1,19 @@
+---
+- name: Configure NFS server and shared permissions
+  hosts: nfs_servers
+  become: true
+
+  roles:
+    - nfs_server
+
+- name: Mount NFS shares and manage workstation users
+  hosts: managed_user_hosts
+  become: true
+  serial: 1
+
+  vars_files:
+    - ../inventory/vault/users.yml
+
+  roles:
+    - nfs_client
+    - system_users_acl

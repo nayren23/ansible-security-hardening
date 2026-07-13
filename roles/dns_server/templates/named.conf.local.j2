@@ -1,0 +1,16 @@
+include "{{ dns_server_ddns_key_file }}";
+
+zone "{{ dns_server_domain }}" {
+  type primary;
+  file "/var/lib/bind/db.{{ dns_server_domain }}";
+  allow-update { key "{{ dns_server_ddns_key_name }}"; };
+};
+
+{% for zone in dns_server_reverse_zones %}
+zone "{{ zone.name }}" {
+  type primary;
+  file "/var/lib/bind/{{ zone.file }}";
+  allow-update { key "{{ dns_server_ddns_key_name }}"; };
+};
+
+{% endfor %}

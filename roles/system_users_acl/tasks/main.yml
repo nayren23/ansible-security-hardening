@@ -1,0 +1,51 @@
+---
+- name: Install ACL package
+  ansible.builtin.apt:
+    name: acl
+    state: present
+    update_cache: true
+
+- name: Create department groups with stable GIDs
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  loop:
+    - name: comptabilite
+      gid: 3001
+    - name: scolarite
+      gid: 3002
+    - name: direction
+      gid: 3003
+
+- name: Create local shared home for school department
+  ansible.builtin.file:
+    path: /home/scolarite
+    state: directory
+    owner: root
+    group: scolarite
+    mode: "2770"
+  when: inventory_hostname == 'm2'
+
+- name: Create assigned users
+  ansible.builtin.user:
+    name: "{{ item.name }}"
+    uid: "{{ item.uid }}"
+    group: "{{ item.group }}"
+    password: "{{ users_password_hash }}"
+    create_home: "{{ item.create_home }}"
+    home: "{{ item.home | default(omit) }}"
+    shell: /bin/bash
+    state: present
+  loop: "{{ machine_users | default([]) }}"
+  no_log: true
+
+- name: Set inherited write ACL on local school workspace
+  ansible.posix.acl:
+    path: /home/scolarite
+    entity: scolarite
+    etype: group
+    permissions: rwx
+    default: true
+    state: present
+  when: inventory_hostname == 'm2'

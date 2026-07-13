@@ -1,0 +1,7 @@
+.venv/
+.vs/
+*.retry
+.vault_pass
+ansadmin
+ansadmin.pub
+*.pem

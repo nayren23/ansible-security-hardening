@@ -1,0 +1,25 @@
+---
+- name: Install Rsyslog client package
+  ansible.builtin.apt:
+    name: rsyslog
+    state: present
+    update_cache: true
+
+- name: Configure forwarding to central Rsyslog server
+  ansible.builtin.template:
+    src: forwarding.conf.j2
+    dest: /etc/rsyslog.d/90-central-forwarding.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Rsyslog
+
+- name: Validate complete Rsyslog configuration
+  ansible.builtin.command: rsyslogd -N1
+  changed_when: false
+
+- name: Enable and start Rsyslog
+  ansible.builtin.service:
+    name: rsyslog
+    enabled: true
+    state: started

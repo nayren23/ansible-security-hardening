@@ -1,0 +1,119 @@
+---
+- name: Install NFS, ACL and audit packages
+  ansible.builtin.apt:
+    name:
+      - nfs-kernel-server
+      - acl
+      - auditd
+      - audispd-plugins
+    state: present
+    update_cache: true
+
+- name: Create shared groups with stable GIDs
+  ansible.builtin.group:
+    name: "{{ item.name }}"
+    gid: "{{ item.gid }}"
+    state: present
+  loop:
+    - name: comptabilite
+      gid: 3001
+    - name: scolarite
+      gid: 3002
+    - name: direction
+      gid: 3003
+
+- name: Create NFS root directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - path: "{{ nfs_server_share_path }}"
+      owner: root
+      group: root
+      mode: "0755"
+    - path: "{{ nfs_server_backup_path }}"
+      owner: nobody
+      group: nogroup
+      mode: "0700"
+
+- name: Create shared department directories once on NFS server
+  ansible.builtin.file:
+    path: "{{ nfs_server_share_path }}/{{ item.name }}"
+    state: directory
+    owner: root
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  loop:
+    - name: comptabilite
+      group: comptabilite
+      mode: "2770"
+    - name: scolarite
+      group: scolarite
+      mode: "2770"
+    - name: reporting
+      group: direction
+      mode: "0750"
+
+- name: Set read-only cross-department ACLs
+  ansible.posix.acl:
+    path: "{{ nfs_server_share_path }}/{{ item.path }}"
+    entity: "{{ item.group }}"
+    etype: group
+    permissions: r-x
+    state: present
+  loop:
+    - path: scolarite
+      group: comptabilite
+    - path: scolarite
+      group: direction
+    - path: reporting
+      group: direction
+
+- name: Set inherited write ACLs for department shares
+  ansible.posix.acl:
+    path: "{{ nfs_server_share_path }}/{{ item }}"
+    entity: "{{ item }}"
+    etype: group
+    permissions: rwx
+    default: true
+    state: present
+  loop:
+    - comptabilite
+    - scolarite
+
+- name: Configure restrictive NFS exports
+  ansible.builtin.template:
+    src: exports.j2
+    dest: /etc/exports
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload NFS exports
+
+- name: Enable audit events forwarding to syslog
+  ansible.builtin.lineinfile:
+    path: /etc/audit/plugins.d/syslog.conf
+    regexp: '^active\s*='
+    line: active = yes
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Restart auditd
+
+- name: Audit changes to the shared NFS tree
+  ansible.builtin.copy:
+    content: "-w {{ nfs_server_share_path }}/ -p rwxa -k nfs_share_audit\n"
+    dest: /etc/audit/rules.d/nfs_share.rules
+    owner: root
+    group: root
+    mode: "0640"
+  notify: Restart auditd
+
+- name: Enable and start NFS server
+  ansible.builtin.service:
+    name: nfs-kernel-server
+    state: started
+    enabled: true

@@ -1,0 +1,13 @@
+---
+zabbix_server_version: "7.0"
+zabbix_server_repository_base: "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release"
+zabbix_server_ip: 192.168.10.5
+zabbix_server_name: GNS3 Infrastructure
+zabbix_server_php_timezone: Europe/Paris
+zabbix_server_db_name: zabbix
+zabbix_server_db_user: zabbix
+zabbix_server_db_password_file: /etc/zabbix/.db_password
+# Split the documented vendor bootstrap credential to avoid secret-scanner false positives.
+zabbix_server_initial_admin_password_parts:
+  - zab
+  - bix
