@@ -1,0 +1,57 @@
+---
+- name: Remove Chrony from NTP server
+  ansible.builtin.apt:
+    name: chrony
+    state: absent
+    purge: true
+
+- name: Remove obsolete Chrony helper
+  ansible.builtin.file:
+    path: /usr/local/sbin/validate-chrony-config
+    state: absent
+
+- name: Install NTPsec server
+  ansible.builtin.apt:
+    name:
+      - ntpsec
+      - tzdata
+    state: present
+    update_cache: true
+
+- name: Configure server timezone file
+  ansible.builtin.copy:
+    content: "{{ ntp_server_timezone }}\n"
+    dest: /etc/timezone
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure server localtime link
+  ansible.builtin.file:
+    src: "/usr/share/zoneinfo/{{ ntp_server_timezone }}"
+    dest: /etc/localtime
+    state: link
+    force: true
+
+- name: Configure NTPsec server
+  ansible.builtin.template:
+    src: ntp.conf.j2
+    dest: /etc/ntpsec/ntp.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart NTPsec
+
+- name: Enable and start NTPsec
+  ansible.builtin.service:
+    name: ntpsec
+    state: started
+    enabled: true
+
+- name: Apply NTPsec configuration
+  ansible.builtin.meta: flush_handlers
+
+- name: Read NTPsec peer status
+  ansible.builtin.command: ntpq -pn
+  register: ntp_server_peers
+  changed_when: false
