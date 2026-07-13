@@ -1,0 +1,18 @@
+# Managed by Ansible.
+{% for pool in chrony_server_upstream_pools %}
+pool {{ pool }} iburst
+{% endfor %}
+
+driftfile /var/lib/chrony/chrony.drift
+makestep 1.0 3
+rtcsync
+
+# Serve NTP only to the internal GNS3 networks.
+{% for network in chrony_server_allowed_networks %}
+allow {{ network }}
+{% endfor %}
+
+# Keep a coherent lab timescale during temporary Internet outages.
+local stratum {{ chrony_server_local_stratum }} orphan
+
+logdir /var/log/chrony

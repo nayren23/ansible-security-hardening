@@ -1,0 +1,5 @@
+---
+- name: Restart Chrony Server
+  ansible.builtin.service:
+    name: chrony
+    state: restarted

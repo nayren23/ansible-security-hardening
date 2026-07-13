@@ -1,0 +1,8 @@
+# Managed by Ansible.
+server {{ chrony_client_server }} iburst prefer
+
+driftfile /var/lib/chrony/chrony.drift
+makestep 1.0 3
+rtcsync
+
+logdir /var/log/chrony
