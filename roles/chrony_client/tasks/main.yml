@@ -9,6 +9,14 @@
   community.general.timezone:
     name: "{{ chrony_client_timezone }}"
 
+- name: Install Chrony configuration validator
+  ansible.builtin.copy:
+    src: validate-chrony-config
+    dest: /usr/local/sbin/validate-chrony-config
+    owner: root
+    group: root
+    mode: "0755"
+
 - name: Configure internal Chrony source
   ansible.builtin.template:
     src: chrony.conf.j2
@@ -16,7 +24,7 @@
     owner: root
     group: root
     mode: "0644"
-    validate: /usr/sbin/chronyd -p -u root -f %s
+    validate: /usr/local/sbin/validate-chrony-config %s
   notify: Restart Chrony Client
 
 - name: Enable and start Chrony client
