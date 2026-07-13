@@ -232,7 +232,7 @@
       method: user.login
       params:
         username: Admin
-        password: zabbix
+        password: "{{ zabbix_server_initial_admin_password_parts | join }}"
       id: 1
   register: zabbix_server_initial_login
   failed_when: zabbix_server_initial_login.json.error is defined
@@ -249,7 +249,7 @@
       method: user.update
       params:
         userid: "1"
-        current_passwd: zabbix
+        current_passwd: "{{ zabbix_server_initial_admin_password_parts | join }}"
         passwd: "{{ zabbix_server_admin_password }}"
       auth: "{{ zabbix_server_initial_login.json.result }}"
       id: 1
